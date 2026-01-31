@@ -1,0 +1,52 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check auth
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    // 1. Users Collection
+    match /users/{uid} {
+      allow read, write: if isOwner(uid);
+      
+      // 2. Digital Twin Sub-collection
+      match /digitalTwin/{document=**} {
+        allow read, write: if isOwner(uid);
+      }
+      
+      // 3. Plans Sub-collection
+      match /plans/{planId} {
+        allow read, write: if isOwner(uid);
+      }
+
+      // 4. Modules Config
+      match /modules/{moduleId} {
+        allow read, write: if isOwner(uid);
+      }
+      
+      // 5. Nutrition Logs (Feedback)
+      match /nutritionLogs/{dateId} {
+        allow read, write: if isOwner(uid);
+      }
+      
+      // 6. Workout Logs (Feedback)
+      match /workoutLogs/{logId} {
+        allow read, write: if isOwner(uid);
+      }
+    }
+    
+    // 7. Scans (Raw Metadata)
+    match /scans/{scanId} {
+      allow create: if isAuthenticated();
+      allow read: if resource.data.uid == request.auth.uid;
+      // Only backend admin/functions can update 'processed' status
+      allow update: if false; 
+    }
+  }
+}
