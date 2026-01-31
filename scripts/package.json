@@ -1,0 +1,12 @@
+{
+    "name": "live-testing",
+    "version": "1.0.0",
+    "scripts": {
+        "test": "node verify_live.js"
+    },
+    "dependencies": {
+        "firebase": "^10.0.0",
+        "node-fetch": "^3.3.2"
+    },
+    "type": "module"
+}

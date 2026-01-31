@@ -39,7 +39,7 @@ wheels/
 .env
 .env.local
 
-# Node
+# Node.js
 node_modules/
 npm-debug.log*
 yarn-debug.log*
@@ -61,7 +61,14 @@ backend/storage/meshes/*
 before_fitness.glb
 after_fitness.glb
 
-# OS
-.DS_Store
-Thumbs.db
+# Firebase
+.firebase/
+firebase-debug.log*
+firebase-debug.*.log
+.firebaserc
 
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db

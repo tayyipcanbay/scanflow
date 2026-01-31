@@ -1,0 +1,21 @@
+# Tasks
+
+- [x] Requirements Gathering & Scoping <!-- id: 0 -->
+    - [x] Capture Initial Vision in Concept Paper <!-- id: 1 -->
+    - [x] Clarify Technical Constraints (Hackathon MVP, Flutter, Google Ops) <!-- id: 2 -->
+    - [x] Define Core vs. Module Boundaries <!-- id: 3 -->
+- [x] System Architecture Design (MVP) <!-- id: 4 -->
+    - [x] Define Flutter Module Architecture <!-- id: 5 -->
+    - [x] Choose Google Backend Services (Firebase vs GCP) <!-- id: 6 -->
+    - [x] Design Data Model (Detailed Schema Doc) <!-- id: 7 -->
+    - [x] Design Extensible Module Interface (Future-proof for Integrations) <!-- id: 7a -->
+- [ ] MVP Implementation <!-- id: 8 -->
+    - [x] Define API Endpoints & Data Schema <!-- id: 17 -->
+    - [x] Define User Scenarios & Inputs <!-- id: 15 -->
+    - [x] Define Project Workflows (Setup & Scaffold) <!-- id: 14 -->
+    - [ ] Environment Setup (Install Flutter) <!-- id: 13 -->
+    - [ ] Flutter App Initialization <!-- id: 9 -->
+    - [ ] Core Module: 3D Data Mock/Ingest <!-- id: 10 -->
+    - [ ] Core Module: 3D Mesh Viewer (Visual Comparison) <!-- id: 16 -->
+    - [ ] Core Module: AI Trainer (Gemini API) <!-- id: 11 -->
+    - [ ] Feature Module: Dynamic Plan Generator <!-- id: 12 -->

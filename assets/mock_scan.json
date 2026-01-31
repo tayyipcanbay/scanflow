@@ -1,0 +1,27 @@
+{
+    "scanId": "mock-scan-001",
+    "timestamp": "2023-10-27T10:00:00Z",
+    "deviceInfo": "MockScanner v1.0",
+    "metrics": {
+        "weightKg": 76.1,
+        "bmi": 23.4,
+        "bmrKcal": 1877,
+        "bodyWaterL": 51.1,
+        "visceralFatLevel": 12,
+        "bodyFatPercent": 8.3,
+        "muscleMassKg": 40.7,
+        "fatFreeMassKg": 69.8,
+        "segmentalAnalysis": {
+            "torsoFatKg": 2.7,
+            "leftArmFatKg": 0.1,
+            "rightArmFatKg": 0.1,
+            "leftLegFatKg": 1.1,
+            "rightLegFatKg": 1.1,
+            "torsoLeanKg": 32.6,
+            "leftArmLeanKg": 4.3,
+            "rightArmLeanKg": 4.4,
+            "leftLegLeanKg": 10.8,
+            "rightLegLeanKg": 10.9
+        }
+    }
+}
