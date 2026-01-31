@@ -73,8 +73,43 @@ scanflow/
 ├── functions/           # 🧠 Cloud Functions (The Backend Brain)
 ├── scripts/             # 🧪 Test Scripts & Headless Clients
 ├── assets/              # 📦 Mock Data & 3D Scan Files
+├── backend/             # 🐍 FastAPI Backend (3D Body Progress Engine)
+├── frontend/            # ⚛️ React Frontend (3D Visualization)
 └── firestore.rules      # 🛡 Security Protocols
 ```
+
+---
+
+## 🎯 3D Body Progress Engine (FastAPI Backend)
+
+This repository also includes a **FastAPI-based 3D Body Progress Engine** that provides:
+
+- **3D Mesh Processing**: Upload and compare GLB, OBJ, FBX files
+- **Color-Coded Visualization**: Green for decrease (fat loss), Red for increase (muscle gain)
+- **Streamlit Interface**: Interactive web app for mesh comparison
+- **AI Insights**: Automated analysis of body changes over time
+- **Body Region Detection**: Waist, chest, arms, thighs analysis
+
+### Quick Start (FastAPI Backend)
+
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
+
+### Streamlit App
+
+```bash
+cd backend
+streamlit run streamlit_app.py
+```
+
+See `QUICK_START.md` and `STREAMLIT_GUIDE.md` for detailed instructions.
+
+---
 
 ## 🤝 Contributing
 1.  Fork it.
