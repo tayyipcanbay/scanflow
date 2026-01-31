@@ -1,6 +1,7 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const { VertexAI } = require("@google-cloud/vertexai");
+const { FieldValue } = require("firebase-admin/firestore");
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -16,7 +17,7 @@ exports.onUserCreate = functions.auth.user().onCreate(async (user) => {
     email,
     displayName: displayName || "New User",
     photoURL: photoURL || null,
-    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    createdAt: FieldValue.serverTimestamp(),
     onboardingStatus: "pending_details",
     role: "user"
   });
@@ -29,14 +30,19 @@ exports.onUserCreate = functions.auth.user().onCreate(async (user) => {
 // ----------------------------------------------------
 
 exports.submitOnboardingDetails = functions.https.onCall(async (data, context) => {
-  if (!context.auth) throw new functions.https.HttpsError("unauthenticated", "User must be logged in");
-  const { uid } = context.auth;
-  await db.collection("users").doc(uid).update({
-    ...data,
-    onboardingStatus: "complete",
-    updatedAt: admin.firestore.FieldValue.serverTimestamp()
-  });
-  return { status: "success", message: "Profile updated" };
+  try {
+    if (!context.auth) throw new functions.https.HttpsError("unauthenticated", "User must be logged in");
+    const { uid } = context.auth;
+    await db.collection("users").doc(uid).update({
+      ...data,
+      onboardingStatus: "complete",
+      updatedAt: FieldValue.serverTimestamp()
+    });
+    return { status: "success", message: "Profile updated" };
+  } catch (e) {
+    console.error("submitOnboardingDetails Error:", e);
+    throw new functions.https.HttpsError("internal", e.message);
+  }
 });
 
 exports.processInitialScan = functions.https.onCall(async (data, context) => {
@@ -48,7 +54,7 @@ exports.processInitialScan = functions.https.onCall(async (data, context) => {
   // For MVP, we trust manualMetrics or return a standard "Digital Twin"
 
   const digitalTwin = {
-    timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    timestamp: FieldValue.serverTimestamp(),
     weight: manualMetrics?.weight || 75.0,
     bodyFat: 18.5,
     muscleMass: 42.1,
@@ -137,7 +143,7 @@ exports.logWorkoutFeedback = functions.https.onCall(async (data, context) => {
 
   await db.collection("users").doc(uid).collection("workoutLogs").add({
     ...data,
-    timestamp: admin.firestore.FieldValue.serverTimestamp()
+    timestamp: FieldValue.serverTimestamp()
   });
 
   if (rating >= 5) {
@@ -161,13 +167,13 @@ exports.logNutritionFeedback = functions.https.onCall(async (data, context) => {
 
   await db.collection("users").doc(uid).collection("nutritionLogs").add({
     ...data,
-    timestamp: admin.firestore.FieldValue.serverTimestamp()
+    timestamp: FieldValue.serverTimestamp()
   });
 
   if (ateOffPlan) {
     // SIMULATION: Reduce tomorrow's calories
     await db.collection("users").doc(uid).collection("plans").doc("latest_nutrition").update({
-      dailyCalories: admin.firestore.FieldValue.increment(-200)
+      dailyCalories: FieldValue.increment(-200)
     });
     return { status: "logged", planUpdated: true, message: "Calories adjusted for tomorrow." };
   }
