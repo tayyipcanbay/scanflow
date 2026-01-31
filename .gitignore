@@ -55,11 +55,12 @@ build/
 backend/storage/meshes/*
 !backend/storage/meshes/.gitkeep
 
-# Large mesh files (GLB, OBJ - add to repo only if needed)
+# Large mesh files (GLB, OBJ - should be in cloud storage)
 *.glb
-# *.obj  # Uncomment if you don't want to track OBJ files
-before_fitness.glb
-after_fitness.glb
+*.obj
+# Keep sample data but not large binaries
+!backend/sample_data/**/*.obj
+!3d_scan/*.glb
 
 # Firebase
 .firebase/

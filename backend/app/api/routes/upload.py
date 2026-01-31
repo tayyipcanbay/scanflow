@@ -12,6 +12,8 @@ from app.models.mesh import MeshUpload
 from app.models.user import User
 from app.utils.file_handler import FileHandler
 from app.services.mesh_processor import MeshProcessor
+from app.middleware.firebase_auth import get_current_user, get_optional_user
+from app.services.firebase_integration import firebase_integration
 
 router = APIRouter()
 file_handler = FileHandler()
@@ -31,7 +33,8 @@ class MeshUploadResponse(BaseModel):
 @router.post("/", response_model=MeshUploadResponse)
 async def upload_mesh(
     file: UploadFile = File(...),
-    user_id: int = Form(1),  # TODO: Get from authentication
+    user_id: Optional[int] = Form(None),  # Optional for backward compatibility
+    firebase_uid: Optional[str] = Depends(get_optional_user),
     db: Session = Depends(get_db)
 ):
     """
@@ -39,7 +42,8 @@ async def upload_mesh(
     
     Args:
         file: Mesh file (GLB/OBJ/FBX)
-        user_id: User ID (temporary, should come from auth)
+        user_id: User ID (optional, for backward compatibility)
+        firebase_uid: Firebase user UID from authentication
         db: Database session
         
     Returns:
@@ -52,7 +56,30 @@ async def upload_mesh(
             detail="Invalid mesh file. Supported formats: GLB, OBJ, FBX. Max size: 100MB"
         )
     
-    # Check if user exists (for now, create if not exists)
+    # Use Firebase UID if available, otherwise fall back to user_id
+    # For now, map Firebase UID to a numeric user_id (in production, use a proper mapping)
+    if firebase_uid:
+        # Get or create user mapping
+        # In production, you'd have a User table that maps firebase_uid to user_id
+        user = db.query(User).filter(User.email == f"{firebase_uid}@firebase").first()
+        if not user:
+            # Create user with Firebase UID
+            user = User(
+                email=f"{firebase_uid}@firebase",
+                username=firebase_uid[:20],  # Use first 20 chars of UID
+                hashed_password="firebase_auth"  # Not used with Firebase Auth
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+        user_id = user.id
+    elif user_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required. Provide Firebase token or user_id."
+        )
+    
+    # Check if user exists (for backward compatibility)
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         # Create default user for testing
@@ -60,7 +87,7 @@ async def upload_mesh(
             id=user_id,
             email=f"user{user_id}@example.com",
             username=f"user{user_id}",
-            hashed_password="dummy"  # TODO: Proper authentication
+            hashed_password="dummy"
         )
         db.add(user)
         db.commit()
@@ -105,6 +132,29 @@ async def upload_mesh(
     db.add(mesh_upload)
     db.commit()
     db.refresh(mesh_upload)
+    
+    # Sync to Firebase Digital Twin if Firebase UID available
+    if firebase_uid:
+        try:
+            # Extract basic metrics from mesh (simplified - in production, use actual analysis)
+            mesh_metrics = {
+                "file_path": str(file_path),
+                "weight": 75.0,  # TODO: Extract from mesh or user input
+                "body_fat": 18.5,
+                "muscle_mass": 42.1,
+                "bmi": 23.4,
+                "bmr": 1800,
+            }
+            
+            # Sync to Firebase
+            firebase_integration.sync_mesh_to_digital_twin(
+                user_id=firebase_uid,
+                mesh_data=mesh_metrics
+            )
+        except Exception as e:
+            # Log but don't fail the upload
+            import logging
+            logging.error(f"Failed to sync to Firebase: {e}")
     
     return MeshUploadResponse(
         id=mesh_upload.id,

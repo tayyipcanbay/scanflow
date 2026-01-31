@@ -15,3 +15,5 @@ python-dotenv==1.0.0
 requests==2.31.0
 streamlit==1.29.0
 plotly==5.18.0
+firebase-admin==6.4.0
+google-cloud-firestore==2.14.0

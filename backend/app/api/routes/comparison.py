@@ -10,9 +10,12 @@ import json
 from app.database.connection import get_db
 from app.models.mesh import MeshUpload
 from app.models.comparison import MeshComparison
+from app.models.user import User
 from app.services.mesh_comparator import MeshComparator
 from app.services.region_detector import RegionDetector
 from app.services.color_mapper import ColorMapper
+from app.middleware.firebase_auth import get_optional_user
+from app.services.firebase_integration import firebase_integration
 
 router = APIRouter()
 mesh_comparator = MeshComparator()
@@ -146,6 +149,41 @@ async def get_comparison(
     db.add(mesh_comparison)
     db.commit()
     db.refresh(mesh_comparison)
+    
+    # Sync comparison data to Firebase Digital Twin
+    try:
+        # Get Firebase UID from user (if available)
+        # In production, you'd have a proper mapping table
+        user = db.query(MeshUpload).filter(MeshUpload.id == baseline_id).first()
+        if user:
+            # Try to get Firebase UID from user email pattern
+            user_obj = db.query(User).filter(User.id == user.user_id).first()
+            if user_obj and "@firebase" in user_obj.email:
+                firebase_uid = user_obj.email.replace("@firebase", "")
+                
+                # Sync comparison data
+                comparison_payload = {
+                    "statistics": {
+                        "avg_magnitude": stats["avg_magnitude"],
+                        "max_magnitude": stats["max_magnitude"],
+                        "increase_percentage": stats["increase_percentage"],
+                        "decrease_percentage": stats["decrease_percentage"],
+                    },
+                    "region_statistics": region_stats
+                }
+                
+                firebase_integration.sync_mesh_to_digital_twin(
+                    user_id=firebase_uid,
+                    mesh_data={"file_path": comparison_mesh.file_path},
+                    comparison_data=comparison_payload
+                )
+                
+                # Trigger AI plan regeneration
+                firebase_integration.trigger_ai_plan_regeneration(firebase_uid)
+    except Exception as e:
+        # Log but don't fail the comparison
+        import logging
+        logging.error(f"Failed to sync comparison to Firebase: {e}")
     
     return ComparisonResponse(
         id=mesh_comparison.id,
