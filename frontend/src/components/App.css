@@ -1,0 +1,127 @@
+.info-panel {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.info-panel h3 {
+  margin-top: 0;
+  color: #333;
+  border-bottom: 2px solid #667eea;
+  padding-bottom: 10px;
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.stat-item {
+  padding: 15px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.stat-item.increase {
+  background: #ffe0e0;
+  border-left: 4px solid #ff0000;
+}
+
+.stat-item.decrease {
+  background: #e0ffe0;
+  border-left: 4px solid #00ff00;
+}
+
+.stat-label {
+  font-size: 0.9em;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.stat-value {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #333;
+}
+
+.region-stats {
+  margin-top: 20px;
+}
+
+.region-stats h4 {
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.region-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  background: #f9f9f9;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.region-name {
+  font-weight: bold;
+  color: #333;
+}
+
+.region-details {
+  display: flex;
+  gap: 15px;
+  font-size: 0.9em;
+}
+
+.region-details span:first-child {
+  color: #ff0000;
+}
+
+.region-details span:last-child {
+  color: #00aa00;
+}
+
+.insight-content {
+  background: #f9f9f9;
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+.insight-content p {
+  margin: 0 0 10px 0;
+  line-height: 1.6;
+  color: #333;
+}
+
+.insight-confidence {
+  font-size: 0.85em;
+  color: #666;
+  font-style: italic;
+}
+
+.action-plan {
+  margin-bottom: 20px;
+  padding: 15px;
+  background: #f9f9f9;
+  border-radius: 8px;
+}
+
+.action-plan h4 {
+  margin-top: 0;
+  color: #667eea;
+}
+
+.plan-content {
+  margin-top: 10px;
+}
+
+.plan-content div {
+  margin-bottom: 8px;
+  color: #333;
+}
+

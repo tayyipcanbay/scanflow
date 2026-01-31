@@ -1,0 +1,62 @@
+[
+  {
+    "week": 0,
+    "mesh_id": 1,
+    "is_baseline": true,
+    "bia_data": {
+      "user_id": 1,
+      "week": 0,
+      "weight": 105.0,
+      "bmi": 35.5,
+      "fat_percentage": 28.0,
+      "muscle_percentage": 32.0,
+      "water_percentage": 52.0,
+      "recorded_at": "2025-11-08T14:30:17.052671"
+    }
+  },
+  {
+    "week": 4,
+    "mesh_id": 2,
+    "is_baseline": false,
+    "bia_data": {
+      "user_id": 1,
+      "week": 4,
+      "weight": 102.3,
+      "bmi": 34.6,
+      "fat_percentage": 24.0,
+      "muscle_percentage": 33.2,
+      "water_percentage": 52.8,
+      "recorded_at": "2025-12-06T14:30:17.052780"
+    }
+  },
+  {
+    "week": 8,
+    "mesh_id": 3,
+    "is_baseline": false,
+    "bia_data": {
+      "user_id": 1,
+      "week": 8,
+      "weight": 99.6,
+      "bmi": 33.7,
+      "fat_percentage": 20.0,
+      "muscle_percentage": 34.4,
+      "water_percentage": 53.6,
+      "recorded_at": "2026-01-03T14:30:17.052801"
+    }
+  },
+  {
+    "week": 12,
+    "mesh_id": 4,
+    "is_baseline": false,
+    "bia_data": {
+      "user_id": 1,
+      "week": 12,
+      "weight": 97.0,
+      "bmi": 32.8,
+      "fat_percentage": 16.0,
+      "muscle_percentage": 35.6,
+      "water_percentage": 54.4,
+      "recorded_at": "2026-01-31T14:30:17.052807"
+    }
+  }
+]

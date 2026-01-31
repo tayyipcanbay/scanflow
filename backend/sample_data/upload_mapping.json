@@ -1,0 +1,65 @@
+{
+  "user_id": 1,
+  "uploads": [
+    {
+      "week": 0,
+      "file": "sample_data/meshes/user1_week0.obj",
+      "is_baseline": true,
+      "bia_data": {
+        "user_id": 1,
+        "week": 0,
+        "weight": 75.0,
+        "bmi": 24.5,
+        "fat_percentage": 25.0,
+        "muscle_percentage": 35.0,
+        "water_percentage": 55.0,
+        "recorded_at": "2025-11-08T14:23:25.387557"
+      }
+    },
+    {
+      "week": 4,
+      "file": "sample_data/meshes/user1_week4.obj",
+      "is_baseline": false,
+      "bia_data": {
+        "user_id": 1,
+        "week": 4,
+        "weight": 73.0,
+        "bmi": 23.8,
+        "fat_percentage": 21.8,
+        "muscle_percentage": 36.2,
+        "water_percentage": 55.8,
+        "recorded_at": "2025-12-06T14:23:25.387630"
+      }
+    },
+    {
+      "week": 8,
+      "file": "sample_data/meshes/user1_week8.obj",
+      "is_baseline": false,
+      "bia_data": {
+        "user_id": 1,
+        "week": 8,
+        "weight": 71.0,
+        "bmi": 23.2,
+        "fat_percentage": 18.6,
+        "muscle_percentage": 37.4,
+        "water_percentage": 56.6,
+        "recorded_at": "2026-01-03T14:23:25.387657"
+      }
+    },
+    {
+      "week": 12,
+      "file": "sample_data/meshes/user1_week12.obj",
+      "is_baseline": false,
+      "bia_data": {
+        "user_id": 1,
+        "week": 12,
+        "weight": 69.0,
+        "bmi": 22.5,
+        "fat_percentage": 15.4,
+        "muscle_percentage": 38.6,
+        "water_percentage": 57.4,
+        "recorded_at": "2026-01-31T14:23:25.387683"
+      }
+    }
+  ]
+}

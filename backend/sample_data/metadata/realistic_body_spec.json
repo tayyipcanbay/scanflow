@@ -1,0 +1,17 @@
+{
+  "gender": "M",
+  "age": 45,
+  "height_cm": 172,
+  "weight_kg": 105,
+  "fat_distribution": {
+    "belly": 0.85,
+    "thighs": 0.75,
+    "arms": 0.25,
+    "chest": 0.55
+  },
+  "muscle_distribution": {
+    "arms": 0.25,
+    "legs": 0.35,
+    "chest": 0.3
+  }
+}

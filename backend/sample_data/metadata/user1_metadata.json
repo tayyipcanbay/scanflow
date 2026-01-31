@@ -1,0 +1,9 @@
+{
+  "user_id": 1,
+  "age": 25,
+  "gender": "F",
+  "country": "CN",
+  "height_cm": 164,
+  "activity_level": "sedentary",
+  "goal": "muscle_gain"
+}

@@ -1,0 +1,47 @@
+{
+  "overweight": {
+    "baseline": "sample_data/body_types/overweight_baseline.obj",
+    "after": "sample_data/body_types/overweight_after.obj",
+    "comparison": "sample_data/body_types/overweight_comparison.obj",
+    "weight_kg": 105,
+    "bmi": 35.5,
+    "gender": "M",
+    "age": 45
+  },
+  "normal": {
+    "baseline": "sample_data/body_types/normal_baseline.obj",
+    "after": "sample_data/body_types/normal_after.obj",
+    "comparison": "sample_data/body_types/normal_comparison.obj",
+    "weight_kg": 75,
+    "bmi": 25.3,
+    "gender": "M",
+    "age": 30
+  },
+  "athletic": {
+    "baseline": "sample_data/body_types/athletic_baseline.obj",
+    "after": "sample_data/body_types/athletic_after.obj",
+    "comparison": "sample_data/body_types/athletic_comparison.obj",
+    "weight_kg": 80,
+    "bmi": 27.0,
+    "gender": "M",
+    "age": 28
+  },
+  "muscular": {
+    "baseline": "sample_data/body_types/muscular_baseline.obj",
+    "after": "sample_data/body_types/muscular_after.obj",
+    "comparison": "sample_data/body_types/muscular_comparison.obj",
+    "weight_kg": 85,
+    "bmi": 28.7,
+    "gender": "M",
+    "age": 32
+  },
+  "slim": {
+    "baseline": "sample_data/body_types/slim_baseline.obj",
+    "after": "sample_data/body_types/slim_after.obj",
+    "comparison": "sample_data/body_types/slim_comparison.obj",
+    "weight_kg": 65,
+    "bmi": 22.0,
+    "gender": "F",
+    "age": 25
+  }
+}
