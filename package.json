@@ -23,5 +23,8 @@
   "homepage": "https://github.com/tayyipcanbay/scanflow#readme",
   "devDependencies": {
     "firebase-tools": "^15.5.1"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.6.0"
   }
 }

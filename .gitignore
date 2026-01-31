@@ -8,6 +8,7 @@ yarn-error.log*
 firebase-debug.log*
 firebase-debug.*.log
 .firebaserc
+*-firebase-adminsdk-*.json
 
 # macOS
 .DS_Store

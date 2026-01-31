@@ -1,4 +1,4 @@
-const functions = require("firebase-functions");
+const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
 const { VertexAI } = require("@google-cloud/vertexai");
 const { FieldValue } = require("firebase-admin/firestore");
@@ -19,9 +19,15 @@ exports.onUserCreate = functions.auth.user().onCreate(async (user) => {
     photoURL: photoURL || null,
     createdAt: FieldValue.serverTimestamp(),
     onboardingStatus: "pending_details",
-    role: "user"
+    role: "user",
+    // Initialize sub-structures for Single JSON architecture
+    digitalTwin: {},
+    trainingPlan: {},
+    nutritionPlan: {},
+    workoutLogs: [],
+    nutritionLogs: []
   });
-  console.log(`[Auth] User profile created for ${uid}`);
+  console.log(`[Auth] User profile and single-json structure created for ${uid}`);
   return null;
 });
 
@@ -54,7 +60,7 @@ exports.processInitialScan = functions.https.onCall(async (data, context) => {
   // For MVP, we trust manualMetrics or return a standard "Digital Twin"
 
   const digitalTwin = {
-    timestamp: FieldValue.serverTimestamp(),
+    timestamp: new Date().toISOString(), // Use ISO string for JSON compat inside object
     weight: manualMetrics?.weight || 75.0,
     bodyFat: 18.5,
     muscleMass: 42.1,
@@ -64,8 +70,10 @@ exports.processInitialScan = functions.https.onCall(async (data, context) => {
     scanUrl: scanFileUrl
   };
 
-  await db.collection("users").doc(uid).collection("digitalTwin").doc("latest").set(digitalTwin);
-  return { status: "success", digitalTwinId: "latest", metrics: digitalTwin };
+  await db.collection("users").doc(uid).update({
+    digitalTwin
+  });
+  return { status: "success", digitalTwin };
 });
 
 // ----------------------------------------------------
@@ -78,7 +86,8 @@ exports.generateTrainingPlan = functions.https.onCall(async (data, context) => {
 
   // Logic: Check if User has specific modules or goals
   const userDoc = await db.collection("users").doc(uid).get();
-  const goals = userDoc.data()?.goals || [];
+  const userData = userDoc.data();
+  const goals = userData?.goals || [];
 
   const mockPlan = {
     planId: `plan_${Date.now()}`,
@@ -98,7 +107,9 @@ exports.generateTrainingPlan = functions.https.onCall(async (data, context) => {
     ]
   };
 
-  await db.collection("users").doc(uid).collection("plans").doc("latest_training").set(mockPlan);
+  await db.collection("users").doc(uid).update({
+    trainingPlan: mockPlan
+  });
   return { status: "success", plan: mockPlan };
 });
 
@@ -111,9 +122,11 @@ exports.generateNutritionPlan = functions.https.onCall(async (data, context) => 
   const { uid } = context.auth;
   const { dietType } = data;
 
-  // Fetch BMR from Digital Twin
-  const twinSnap = await db.collection("users").doc(uid).collection("digitalTwin").doc("latest").get();
-  const bmr = twinSnap.exists ? twinSnap.data().bmrKcal : 2000;
+  // Fetch BMR from Digital Twin in the same doc
+  const userDoc = await db.collection("users").doc(uid).get();
+  const userData = userDoc.data();
+  // Safe access to nested BMR
+  const bmr = userData?.digitalTwin?.bmrKcal || 2000;
 
   const targetCalories = bmr + 500; // Default surplus
 
@@ -128,7 +141,9 @@ exports.generateNutritionPlan = functions.https.onCall(async (data, context) => 
     ]
   };
 
-  await db.collection("users").doc(uid).collection("plans").doc("latest_nutrition").set(nutritionPlan);
+  await db.collection("users").doc(uid).update({
+    nutritionPlan
+  });
   return { status: "success", plan: nutritionPlan };
 });
 
@@ -141,17 +156,20 @@ exports.logWorkoutFeedback = functions.https.onCall(async (data, context) => {
   const { uid } = context.auth;
   const { rating, notes } = data;
 
-  await db.collection("users").doc(uid).collection("workoutLogs").add({
-    ...data,
-    timestamp: FieldValue.serverTimestamp()
+  await db.collection("users").doc(uid).update({
+    workoutLogs: FieldValue.arrayUnion({
+      ...data,
+      timestamp: new Date().toISOString()
+    })
   });
 
   if (rating >= 5) {
     console.log(`[AI Logic] High pain reported. Adjusting future plan...`);
     // SIMULATION: Update the plan to "Deload"
-    await db.collection("users").doc(uid).collection("plans").doc("latest_training").update({
-      cycleFocus: "Injury Recovery / Deload",
-      "schedule.0.type": "Mobility & Stretch"
+    // We update the nested trainingPlan fields using dot notation
+    await db.collection("users").doc(uid).update({
+      "trainingPlan.cycleFocus": "Injury Recovery / Deload",
+      "trainingPlan.schedule.0.type": "Mobility & Stretch"
     });
     return { status: "logged", planUpdated: true, message: "Plan adapted for recovery." };
   }
@@ -165,15 +183,17 @@ exports.logNutritionFeedback = functions.https.onCall(async (data, context) => {
   const { uid } = context.auth;
   const { ateOffPlan } = data;
 
-  await db.collection("users").doc(uid).collection("nutritionLogs").add({
-    ...data,
-    timestamp: FieldValue.serverTimestamp()
+  await db.collection("users").doc(uid).update({
+    nutritionLogs: FieldValue.arrayUnion({
+      ...data,
+      timestamp: new Date().toISOString()
+    })
   });
 
   if (ateOffPlan) {
     // SIMULATION: Reduce tomorrow's calories
-    await db.collection("users").doc(uid).collection("plans").doc("latest_nutrition").update({
-      dailyCalories: FieldValue.increment(-200)
+    await db.collection("users").doc(uid).update({
+      "nutritionPlan.dailyCalories": FieldValue.increment(-200)
     });
     return { status: "logged", planUpdated: true, message: "Calories adjusted for tomorrow." };
   }
