@@ -2,6 +2,7 @@ const functions = require("firebase-functions/v1");
 const admin = require("firebase-admin");
 const { VertexAI } = require("@google-cloud/vertexai");
 const { FieldValue } = require("firebase-admin/firestore");
+const OpenAI = require("openai");
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -25,7 +26,8 @@ exports.onUserCreate = functions.auth.user().onCreate(async (user) => {
     trainingPlan: {},
     nutritionPlan: {},
     workoutLogs: [],
-    nutritionLogs: []
+    nutritionLogs: [],
+    aiInteractionHistory: []
   });
   console.log(`[Auth] User profile and single-json structure created for ${uid}`);
   return null;
@@ -200,3 +202,168 @@ exports.logNutritionFeedback = functions.https.onCall(async (data, context) => {
 
   return { status: "logged", planUpdated: false };
 });
+
+// ----------------------------------------------------
+// 6. AI CHAT ASSISTANT
+// ----------------------------------------------------
+
+exports.chatWithAI = functions.https.onCall(async (data, context) => {
+  try {
+    if (!context.auth) {
+      throw new functions.https.HttpsError("unauthenticated", "User must be logged in");
+    }
+
+    const { uid } = context.auth;
+    const { message } = data;
+
+    if (!message || typeof message !== "string") {
+      throw new functions.https.HttpsError("invalid-argument", "Message is required");
+    }
+
+    console.log(`[AI Chat] User ${uid} sent: ${message}`);
+
+    // Initialize OpenAI client (must be done inside function to access env vars)
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY
+    });
+
+    // 1. Get complete user data from Firestore (single JSON document)
+    const userDoc = await db.collection("users").doc(uid).get();
+    if (!userDoc.exists) {
+      throw new functions.https.HttpsError("not-found", "User profile not found");
+    }
+
+    const userData = userDoc.data();
+
+    // 2. Prepare system prompt
+    const systemPrompt = `You are a personal AI fitness coach for the Scanflow app. You have access to the user's complete fitness profile.
+
+User Profile:
+- Digital Twin: ${JSON.stringify(userData.digitalTwin || {})}
+- Training Plan: ${JSON.stringify(userData.trainingPlan || {})}
+- Nutrition Plan: ${JSON.stringify(userData.nutritionPlan || {})}
+- Recent Workout Logs: ${JSON.stringify((userData.workoutLogs || []).slice(-3))}
+- Recent Nutrition Logs: ${JSON.stringify((userData.nutritionLogs || []).slice(-3))}
+- Goals: ${JSON.stringify(userData.goals || [])}
+- Experience Level: ${userData.experienceLevel || "unknown"}
+
+Your role:
+- Answer questions about their fitness journey
+- Provide personalized advice based on their data
+- Suggest adjustments to training/nutrition plans
+- Motivate and support the user
+
+When you recommend changes to their plan, use the updateUserData function. Only update fields when necessary.`;
+
+    // 3. Define function schema for ChatGPT (for structured updates)
+    const tools = [
+      {
+        type: "function",
+        function: {
+          name: "updateUserData",
+          description: "Update user's training or nutrition plan based on recommendations",
+          parameters: {
+            type: "object",
+            properties: {
+              trainingPlanCycleFocus: {
+                type: "string",
+                description: "New cycle focus for training plan (e.g., 'Strength Phase', 'Hypertrophy', 'Deload')"
+              },
+              nutritionPlanDailyCalories: {
+                type: "number",
+                description: "New daily calorie target"
+              },
+              goals: {
+                type: "array",
+                items: { type: "string" },
+                description: "Updated fitness goals"
+              },
+              reason: {
+                type: "string",
+                description: "Brief explanation of why these changes are being made"
+              }
+            },
+            required: ["reason"]
+          }
+        }
+      }
+    ];
+
+    // 4. Call ChatGPT API
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: message }
+      ],
+      tools,
+      tool_choice: "auto",
+      temperature: 0.7,
+      max_tokens: 500
+    });
+
+    const response = completion.choices[0].message;
+    let textResponse = response.content || "I'm here to help! How can I assist you with your fitness journey?";
+    const updates = {};
+
+    // 5. Process function calls (if AI wants to update user data)
+    if (response.tool_calls && response.tool_calls.length > 0) {
+      const toolCall = response.tool_calls[0];
+      if (toolCall.function.name === "updateUserData") {
+        const args = JSON.parse(toolCall.function.arguments);
+
+        // Build update object
+        if (args.trainingPlanCycleFocus) {
+          updates["trainingPlan.cycleFocus"] = args.trainingPlanCycleFocus;
+        }
+        if (args.nutritionPlanDailyCalories) {
+          updates["nutritionPlan.dailyCalories"] = args.nutritionPlanDailyCalories;
+        }
+        if (args.goals && Array.isArray(args.goals)) {
+          updates.goals = args.goals;
+        }
+
+        // Apply updates to Firestore
+        if (Object.keys(updates).length > 0) {
+          await db.collection("users").doc(uid).update(updates);
+          console.log(`[AI Chat] Applied updates for ${uid}:`, updates);
+        }
+
+        // Log interaction in aiInteractionHistory
+        await db.collection("users").doc(uid).update({
+          aiInteractionHistory: FieldValue.arrayUnion({
+            timestamp: new Date().toISOString(),
+            userMessage: message,
+            aiResponse: textResponse,
+            updates: updates,
+            reason: args.reason || "AI recommendation"
+          })
+        });
+
+        // Enhance response to mention the update
+        textResponse = `${textResponse}\n\n✅ I've updated your plan: ${args.reason}`;
+      }
+    } else {
+      // Log interaction without updates
+      await db.collection("users").doc(uid).update({
+        aiInteractionHistory: FieldValue.arrayUnion({
+          timestamp: new Date().toISOString(),
+          userMessage: message,
+          aiResponse: textResponse,
+          updates: null
+        })
+      });
+    }
+
+    return {
+      response: textResponse,
+      updatesApplied: Object.keys(updates).length > 0,
+      updates: updates
+    };
+
+  } catch (error) {
+    console.error("[AI Chat] Error:", error);
+    throw new functions.https.HttpsError("internal", `AI chat failed: ${error.message}`);
+  }
+});
+

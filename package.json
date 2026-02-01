@@ -25,6 +25,8 @@
     "firebase-tools": "^15.5.1"
   },
   "dependencies": {
-    "firebase-admin": "^13.6.0"
+    "dotenv": "^17.2.3",
+    "firebase-admin": "^13.6.0",
+    "openai": "^6.17.0"
   }
 }
